@@ -1,0 +1,21 @@
+{
+  "name": "rent-spere_backend",
+  "version": "1.0.0",
+  "description": "Backend for RentSphere - A multi tenant property rental marketplace",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "author": "Yasir Naseem, Ayush Singh, Dhrupad Kapoor, Baltej Randhawa, Arvin",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.14.1",
+    "nodemon": "^3.1.10",
+    "zod": "^3.24.3"
+  }
+}
