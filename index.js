@@ -8,6 +8,7 @@ const { ReviewModel } = require("./models/reviews.model");
 const { connectDB } = require("./db/db");
 const { reviewRouter } = require("./routes/reviews.route");
 const { bookingRouter } = require("./routes/booking.route");
+const { profileRouter } = require("./routes/profile.route");
 
 const app = express();
 app.use(express.json());
@@ -30,6 +31,7 @@ app.use("/auth", authRouter);
 app.use("/properties", propertyRouter);
 app.use("/reviews", reviewRouter);
 app.use("/bookings", bookingRouter);
+app.use("/profile", profileRouter);
 
 app.listen(PORT || 3000, () => {
   console.log(`The server is running on http://localhost:${PORT}`);

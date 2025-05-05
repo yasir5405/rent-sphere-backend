@@ -81,6 +81,15 @@ bookingRouter.post("/add-booking", async (req, res) => {
           .status(403)
           .json({ message: "Only tenants can book a property" });
       }
+      
+      const property = await PropertyModel.findById(propertyId);
+      if (!property || property.availabilityStatus === false) {
+        return res
+          .status(403)
+          .json({
+            message: "This property is currently unavailable for booking",
+          });
+      }
 
       await BookingsModel.create({
         propertyId: propertyId,
@@ -184,6 +193,13 @@ bookingRouter.put("/update-status", async (req, res) => {
       { _id: bookingId },
       { $set: { bookingStatus: status } }
     );
+
+    if (status === "approved") {
+      await PropertyModel.updateOne(
+        { _id: property._id },
+        { $set: { availabilityStatus: false } }
+      );
+    }
 
     res.status(200).json({ message: "bookingStatus updated" });
   } catch (error) {

@@ -4,5 +4,4 @@
 # (
 # Tenant cancel route ✅
 # Booking details view ✅
-# Optional enhancements like pagination, populate, middleware
 # )
