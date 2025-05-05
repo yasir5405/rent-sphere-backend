@@ -192,6 +192,143 @@ bookingRouter.put("/update-status", async (req, res) => {
   }
 });
 
+// Cancel a booking by a tenant
+bookingRouter.delete("/delete", async (req, res) => {
+  const bookingId = req.query.booking_id;
+
+  if (!bookingId) {
+    return res.status(400).json({ message: "Booking ID is required" });
+  }
+
+  try {
+    const token = req.headers.token;
+    if (!token) {
+      console.log("Invalid or missing token");
+      return res.status(403).json({ message: "Invalid or missing token" });
+    }
+    const decodedInfo = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decodedInfo.id;
+
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      console.log("User not found");
+      return res.status(404).json({ message: "User is not found" });
+    }
+
+    if (user.isOwner === true) {
+      console.log("Only tenants can cancel bookings");
+      return res
+        .status(403)
+        .json({ message: "Only tenants can cancel their bookings" });
+    }
+
+    //to check of they are not deleting someone else's booking
+    const isBooking = await BookingsModel.findOne({
+      _id: bookingId,
+      userId: userId,
+    });
+
+    if (!isBooking) {
+      console.log("There are no bookings made by you for this property");
+      return res.status(404).json({
+        message: `There are no bookings made by you for this property: ${bookingId}`,
+      });
+    }
+
+    await BookingsModel.deleteOne({ _id: bookingId, userId: userId });
+    return res.status(200).json({
+      message: `Booking with bookingId: ${isBooking._id} successfully deleted`,
+    });
+  } catch (error) {
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      console.log("Invalid or expired token");
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
+    console.log("Server error:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// GET Details of individual booking
+bookingRouter.get("/booking-info", async (req, res) => {
+  const bookingId = req.query.booking_id;
+
+  if (!bookingId) {
+    console.log("Booking Id is required");
+    return res.status(400).json({ message: "Booking ID is required" });
+  }
+
+  try {
+    const token = req.headers.token;
+    if (!token) {
+      console.log("Invalid or missing token");
+      return res.status(404).json({ message: "Invalid or missing token" });
+    }
+    const decodedInfo = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decodedInfo.id;
+
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      console.log("User does not exists");
+      return res.status(404).json({ message: "User does not exists" });
+    }
+
+    if (user.isOwner === false) {
+      const bookingExists = await BookingsModel.findOne({
+        _id: bookingId,
+        userId: userId,
+      });
+      if (!bookingExists) {
+        console.log("Booking does not exists");
+        return res.status(404).json({ message: "Booking does not exists" });
+      }
+      if (bookingExists.userId !== userId) {
+        console.log(`You cannot see details of other people's booking`);
+      }
+      return res.status(200).json(bookingExists);
+    } else {
+      const booking = await BookingsModel.findOne({ _id: bookingId });
+      if (!booking) {
+        console.log("Booking does not exist");
+        return res.status(404).json({ message: "Booking does not exist" });
+      }
+      const propertyId = booking.propertyId;
+
+      //to restrict from seeing other owner's property's booking details
+      const isPropertyOwn = await PropertyModel.findOne({
+        owner: userId,
+        _id: propertyId,
+      });
+
+      if (!isPropertyOwn) {
+        console.log(
+          "You cannot see details of other owner's property's booking details"
+        );
+        return res.status(403).json({
+          message:
+            "You cannot see details of other owner's property's booking details",
+        });
+      }
+      return res.status(200).json(booking);
+    }
+  } catch (error) {
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      console.log("Invalid or expired token");
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
+    console.log("Server error:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 //Booking of individual properties, to be shown to owner, so he can approve
 bookingRouter.get("/:propertyId", async (req, res) => {
   const propertyId = req.params.propertyId;

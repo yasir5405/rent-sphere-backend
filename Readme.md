@@ -2,7 +2,7 @@
 
 # Add these to bookings.route.js =>
 # (
-# Tenant cancel route
-# Booking details view
+# Tenant cancel route ✅
+# Booking details view ✅
 # Optional enhancements like pagination, populate, middleware
 # )
